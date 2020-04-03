@@ -1,0 +1,122 @@
+Parameters: 
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  InstanceType: 
+    Type: String
+    Default: t2.small
+    AllowedValues: 
+      - t2.small
+      - c5.large
+      - c5.xlarge
+      - c5.2xlarge
+    Description: Enter t2.small, c5.large, c5.xlarge, c5.2xlarge. Default is t2.small.
+  ImageResourceId: 
+    Type: AWS::EC2::Image::Id
+    Default: ami-02d7e25c1cfdd5695
+    AllowedValues: 
+      - ami-02d7e25c1cfdd5695 #Ubuntu 16.04
+      - ami-02a599eb01e3b3c5b #Ubuntu 18.04
+      - ami-08fdde86b93accf1c #Amazon Linux 2 AMI
+    Description: Enter t2.small, c5.large, c5.xlarge, c5.2xlarge. Default is t2.small.
+
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+        ImageId: !Ref ImageResourceId
+        KeyName: !Ref KeyName
+        InstanceType: !Ref InstanceType
+        SecurityGroups:
+        - !Ref SSHSecurityGroup
+        - !Ref ROSecurityGroup
+        BlockDeviceMappings:
+        -
+          DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 50
+    Metadata:
+      AWS::CloudFormation::Init: 
+        configSets: 
+          ascending: 
+            - "update-apt"
+            - "install-prereqs"
+            - "download-steam"
+            - "extract-steam"
+            - "download-game"
+          descending: 
+            - "download-game"
+            - "extract-steam"
+            - "download-steam"
+            - "install-prereqs"
+            - "update-apt"
+        update-apt:
+          commands:
+            test: ""
+            command: "apt update"
+            cwd: "~"
+        install-prereqs:
+          commands:
+            test: ""
+            command: "apt -y install lib32gcc1"
+            cwd: "~"
+        download-steam:
+          commands:
+            test: ""
+            command: "wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+            cwd: "~"
+        extract-steam:
+          commands:
+            test: ""
+            command: "tar -xvzf steamcmd_linux.tar.gz"
+            cwd: "~"
+        download-game:
+          commands:
+            test: ""
+            command: "SteamCmd +login anonymous +force_install_dir ~/RedOrchestra +app_update 223250 validate"
+            cwd: "~"
+        default: 
+          - 
+            ConfigSet: "ascending"
+
+  SSHSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH access via port 22
+      SecurityGroupIngress:
+      - CidrIp: 0.0.0.0/0
+        FromPort: 22
+        IpProtocol: tcp
+        ToPort: 22
+
+  ROSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable Steam and Red Orchestra
+      SecurityGroupIngress:
+      - CidrIp: 0.0.0.0/0
+        FromPort: 7757
+        IpProtocol: udp
+        ToPort: 7757
+      - CidrIp: 0.0.0.0/0
+        FromPort: 7758
+        IpProtocol: udp
+        ToPort: 7758
+      - CidrIp: 0.0.0.0/0
+        FromPort: 7767
+        IpProtocol: udp
+        ToPort: 7767
+      - CidrIp: 0.0.0.0/0
+        FromPort: 28902
+        IpProtocol: tcp
+        ToPort: 28902
+      - CidrIp: 0.0.0.0/0
+        FromPort: 8075
+        IpProtocol: tcp
+        ToPort: 8075
+      - CidrIp: 0.0.0.0/0
+        FromPort: 20610
+        IpProtocol: udp
+        ToPort: 20610
+
