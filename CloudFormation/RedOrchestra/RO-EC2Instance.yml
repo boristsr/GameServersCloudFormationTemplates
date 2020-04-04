@@ -36,11 +36,16 @@ Resources:
           DeviceName: /dev/xvda
           Ebs:
             VolumeSize: 51
+        UserData:
+          'Fn::Base64': !Sub |
+            #!/bin/bash -ex
+              yum update -y aws-cfn-bootstrap
+            /opt/aws/bin/cfn-init -v -s ${AWS::StackName} -r ROServerEC2 --region ${AWS::Region}
     Metadata:
       AWS::CloudFormation::Init:
         config:
           sources:
-            /steam: "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+            /opt/steam: "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
           files: 
             /tmp/cloudformation-info.txt: 
               content: !Sub | 
@@ -48,12 +53,6 @@ Resources:
               mode: "000644"
               owner: "root"
               group: "root"
-          commands: 
-            01-Install: 
-              command: "SteamCmd +login anonymous +force_install_dir /RedOrchestra +app_update 223250 validate"
-              cwd: "/steam"
-              test: "test -d /RedOrchestra"
-              ignoreErrors: "false"
         
 
   SSHSecurityGroup:
