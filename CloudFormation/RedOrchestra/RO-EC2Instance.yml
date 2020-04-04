@@ -14,15 +14,15 @@ Parameters:
     Description: Enter t2.small, c5.large, c5.xlarge, c5.2xlarge. Default is t2.small.
   ImageResourceId: 
     Type: AWS::EC2::Image::Id
-    Default: ami-02d7e25c1cfdd5695
+    Default: ami-02d7e25c1cfdd5695 #Ubuntu 16.04
     AllowedValues: 
       - ami-02d7e25c1cfdd5695 #Ubuntu 16.04
       - ami-02a599eb01e3b3c5b #Ubuntu 18.04
       - ami-08fdde86b93accf1c #Amazon Linux 2 AMI
-    Description: Enter t2.small, c5.large, c5.xlarge, c5.2xlarge. Default is t2.small.
+    Description: Choose the system image to run on.
 
 Resources:
-  EC2Instance:
+  ROServerEC2:
     Type: AWS::EC2::Instance
     Properties:
         ImageId: !Ref ImageResourceId
@@ -33,52 +33,31 @@ Resources:
         - !Ref ROSecurityGroup
         BlockDeviceMappings:
         -
-          DeviceName: /dev/sda1
+          DeviceName: /dev/xvda
           Ebs:
             VolumeSize: 50
     Metadata:
-      AWS::CloudFormation::Init: 
-        configSets: 
-          ascending: 
-            - "update-apt"
-            - "install-prereqs"
-            - "download-steam"
-            - "extract-steam"
-            - "download-game"
-          descending: 
-            - "download-game"
-            - "extract-steam"
-            - "download-steam"
-            - "install-prereqs"
-            - "update-apt"
-        update-apt:
-          commands:
-            test: ""
-            command: "apt update"
-            cwd: "~"
-        install-prereqs:
-          commands:
-            test: ""
-            command: "apt -y install lib32gcc1"
-            cwd: "~"
-        download-steam:
-          commands:
-            test: ""
-            command: "wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
-            cwd: "~"
-        extract-steam:
-          commands:
-            test: ""
-            command: "tar -xvzf steamcmd_linux.tar.gz"
-            cwd: "~"
-        download-game:
-          commands:
-            test: ""
-            command: "SteamCmd +login anonymous +force_install_dir ~/RedOrchestra +app_update 223250 validate"
-            cwd: "~"
-        default: 
-          - 
-            ConfigSet: "ascending"
+      AWS::CloudFormation::Init:
+        config:
+          packages:
+            yum:
+              lib32gcc1: []
+          sources:
+            /steam: "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+          files: 
+            /tmp/cloudformation-info.txt: 
+              content: !Sub | 
+                CREATED ON INSTANCE ${InstanceType};
+              mode: "000644"
+              owner: "root"
+              group: "root"
+          commands: 
+            01-Install: 
+              command: "SteamCmd +login anonymous +force_install_dir /RedOrchestra +app_update 223250 validate"
+              cwd: "/steam"
+              test: "test -d /RedOrchestra"
+              ignoreErrors: "false"
+        
 
   SSHSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -120,3 +99,9 @@ Resources:
         IpProtocol: udp
         ToPort: 20610
 
+Outputs:
+  PublicIp:
+    Description: Server Public IP
+    Value: !GetAtt ROServerEC2.PublicIp
+    Export:
+      Name: !Sub "${AWS::StackName}-PublicIp"
