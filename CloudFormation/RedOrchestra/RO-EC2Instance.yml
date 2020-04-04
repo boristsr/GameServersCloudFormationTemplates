@@ -35,13 +35,10 @@ Resources:
         -
           DeviceName: /dev/xvda
           Ebs:
-            VolumeSize: 50
+            VolumeSize: 51
     Metadata:
       AWS::CloudFormation::Init:
         config:
-          packages:
-            yum:
-              lib32gcc1: []
           sources:
             /steam: "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
           files: 
