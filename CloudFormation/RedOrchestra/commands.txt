@@ -1,4 +1,0 @@
-aws cloudformation create-stack --template-body file://RO-EC2Instance.yml --stack-name ro1-server-test-stack --parameters ParameterKey=KeyName,ParameterValue=ro1-server-key ParameterKey=InstanceType,ParameterValue=t2.small
-
-
-aws cloudformation delete-stack --stack-name ro1-server-test-stack
