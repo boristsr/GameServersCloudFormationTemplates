@@ -1005,12 +1005,6 @@ Resources:
               owner: "steam"
               group: "steam"
           commands:
-            00_install_test: 
-              command: "echo ./steamcmd.sh +login $STEAMUSER $STEAMPASS +force_install_dir /opt/redorchestra +app_update 223250 validate > /home/ec2-user/steaminstall-0.txt"
-              cwd: "~"
-              env: 
-                STEAMUSER: !Ref SteamUsername
-                STEAMPASS: !Ref SteamPassword
             01_install: 
               command: "/opt/games/steam/steamcmd.sh +login $STEAMUSER $STEAMPASS +force_install_dir /opt/games/redorchestra +app_update 223250 validate +quit"
               cwd: "/opt/games/steam"
