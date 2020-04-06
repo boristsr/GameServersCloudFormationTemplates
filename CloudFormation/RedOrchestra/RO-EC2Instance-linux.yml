@@ -1011,7 +1011,25 @@ Resources:
               env: 
                 STEAMUSER: !Ref SteamUsername
                 STEAMPASS: !Ref SteamPassword
-            02_validate: 
+            02a_validate: 
+              command: "/opt/games/steam/steamcmd.sh +login $STEAMUSER $STEAMPASS +force_install_dir /opt/games/redorchestra +app_update 223250 validate +quit"
+              cwd: "/opt/games/steam"
+              env: 
+                STEAMUSER: !Ref SteamUsername
+                STEAMPASS: !Ref SteamPassword
+            02b_validate: 
+              command: "/opt/games/steam/steamcmd.sh +login $STEAMUSER $STEAMPASS +force_install_dir /opt/games/redorchestra +app_update 223250 validate +quit"
+              cwd: "/opt/games/steam"
+              env: 
+                STEAMUSER: !Ref SteamUsername
+                STEAMPASS: !Ref SteamPassword
+            02c_validate: 
+              command: "/opt/games/steam/steamcmd.sh +login $STEAMUSER $STEAMPASS +force_install_dir /opt/games/redorchestra +app_update 223250 validate +quit"
+              cwd: "/opt/games/steam"
+              env: 
+                STEAMUSER: !Ref SteamUsername
+                STEAMPASS: !Ref SteamPassword
+            02d_validate: 
               command: "/opt/games/steam/steamcmd.sh +login $STEAMUSER $STEAMPASS +force_install_dir /opt/games/redorchestra +app_update 223250 validate +quit"
               cwd: "/opt/games/steam"
               env: 
@@ -1032,7 +1050,10 @@ Resources:
             07_setup_shell: 
               command: "usermod --shell /bin/bash steam"
               cwd: "~"
-            08_reboot: 
+            08_write_correct_appid:
+              command: "echo 1200 > /opt/games/redorchestra/system/steam_appid.txt"
+              cwd: "~"
+            09_reboot: 
               command: "reboot"
               cwd: "~"
       
