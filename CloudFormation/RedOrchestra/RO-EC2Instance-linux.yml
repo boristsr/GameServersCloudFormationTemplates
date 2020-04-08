@@ -726,7 +726,7 @@ Resources:
                 VotingHandlerType=xVoting.xVotingHandler
                 MaxIdleTime=+0.0
                 bVACSecured=False
-                bIgnore32PlayerLimit=False
+                bIgnore32PlayerLimit=True
                 
                 [Engine.AmbientSound]
                 AmbientVolume=0.25
