@@ -6,18 +6,18 @@ Parameters:
   InstanceType: 
     Type: String
     Default: t2.small
-    AllowedValues: 
-      - t2.small
+    AllowedValues:
       - t3.small
+      - t2.small
       - c5.large
       - c5.xlarge
       - c5.2xlarge
     Description: Enter t2.small, t3.small, c5.large, c5.xlarge, c5.2xlarge. Default is t2.small.
   ImageResourceId: 
     Type: AWS::EC2::Image::Id
-    Default: ami-08fdde86b93accf1c #Amazon Linux 2 AMI
+    Default: ami-0df33e36ca53be643 #Windows Server 2019 base
     AllowedValues: 
-      - ami-08fdde86b93accf1c #Amazon Linux 2 AMI
+      - ami-0df33e36ca53be643 #Windows Server 2019 base
     Description: Choose the system image to run on.
   SteamUsername: 
     Type: String
@@ -55,154 +55,67 @@ Resources:
         KeyName: !Ref KeyName
         InstanceType: !Ref InstanceType
         SecurityGroups:
-        - !Ref SSHSecurityGroup
+        - !Ref RDPSecurityGroup
         - !Ref ROSecurityGroup
-        BlockDeviceMappings:
-        -
-          DeviceName: /dev/xvda
-          Ebs:
-            VolumeSize: 51
-        UserData:
-          'Fn::Base64': !Sub |
-            #!/bin/bash -ex
-              yum update -y aws-cfn-bootstrap
-            /opt/aws/bin/cfn-init -v -s ${AWS::StackName} -r ROServerEC2 --region ${AWS::Region}
+        UserData: !Base64
+          Fn::Join:
+            - ''
+            - - "<script>\n"
+              - 'cfn-init.exe -v -s '
+              - !Ref 'AWS::StackId'
+              - ' -r ROServerEC2 '
+              - ' --region '
+              - !Ref 'AWS::Region'
+              - "\n"
+              - </script>
     Metadata:
       AWS::CloudFormation::Init:
         config:
-          packages:
-            yum:
-              "glibc.i686": []
           sources:
-            /opt/games/steam: "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
-          users:
-            steam: 
-              uid: "50"
-              homeDir: "/opt/games"
+            c:\games\steam: "https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip"
           files:
-            /opt/games/config/cloudformation-info.txt: 
+            c:\games\steamsetup.exe:
+              source: 
+                https://steamcdn-a.akamaihd.net/client/installer/SteamSetup.exe
+            C:\cfn\cfn-hup.conf:
+              content: !Join
+                - ''
+                - - "[main]\n"
+                  - stack=
+                  - !Ref 'AWS::StackId'
+                  - "\n"
+                  - region=
+                  - !Ref 'AWS::Region'
+                  - "\n"
+            C:\cfn\hooks.d\cfn-auto-reloader.conf:
+              content: !Join
+                - ''
+                - - "[cfn-auto-reloader-hook]\n"
+                  - "triggers=post.update\n"
+                  - "path=Resources.ROServerEC2.Metadata.AWS::CloudFormation::Init\n"
+                  - 'action=cfn-init.exe -v -s '
+                  - !Ref 'AWS::StackId'
+                  - ' -r ROServerEC2'
+                  - ' --region '
+                  - !Ref 'AWS::Region'
+                  - "\n"
+            c:\games\config\cloudformation-info.txt: 
               content: !Sub | 
                 CREATED ON INSTANCE ${InstanceType};
-              mode: "000644"
-              owner: "steam"
-              group: "steam"
-            /opt/games/config/start-ro.sh: 
+            c:\games\config\start-ro.bat: 
               content: !Sub | 
-                #!/bin/bash
-                echo 1200 > /opt/games/redorchestra/system/steam_appid.txt
-                cd /opt/games/redorchestra/system/
-                STEAMUSER=${SteamUsername}
-                STEAMPASS=${SteamPassword}
-                /opt/games/steam/steamcmd.sh +login $STEAMUSER $STEAMPASS &
-
-                sleep 30
-                ./ucc-bin server RO-Barashka.rom?game=ROGame.ROTeamGame?VACSecured=True?
-              mode: "000755"
-              owner: "steam"
-              group: "steam"
-            /etc/init.d/redorchestra: 
+                echo 1200 > c:\games\redorchestra\System\steam_appid.txt
+                cd /d c:\games\redorchestra\system
+                ucc.exe server RO-Barashka.rom?game=ROGame.ROTeamGame?VACSecured=True? -nohomedir
+            c:\games\config\update-ro.bat:
+              #TODO: Don't store credentials here
               content: !Sub | 
-                #!/bin/bash
-                #
-                # chkconfig: - 90 13
-                # processname: redorchestra
-                # pidfile: /opt/games/config/server.pid
-                #
-                # Based off 7 days file at https://7daystodie.gamepedia.com/Linux_Server_with_Amazon_Linux_AMI
-                ### BEGIN INIT INFO
-                # Provides: redorchestra
-                # Required-Start: $local_fs $remote_fs $network Xvfb
-                # Required-Stop: $local_fs $remote_fs $network
-                ### END INIT INFO
-                
-                ##############
-                ### CONFIG ###
-                ##############
-                #
-                # This is the section to modify for different install
-                # directories, game user accounts, etc.
-                #
-                
-                # Parent directory for all games
-                GAME_ROOT_DIR='/opt/games/config'
-                # Name of the game; assumed to match init script name
-                GAME_NAME='redorchestra'
-                # Directory name for this game
-                GAME_DIR_NAME=${!GAME_NAME}
-                # User to run the game as
-                GAME_USER='steam'
-                # Name of this game
-                # Binary used to start the game
-                GAME_BIN_NAME='start-ro.sh'
-                
-                # Derived game dir
-                game_dir="${!GAME_ROOT_DIR}"
-                # Game command line options
-                game_options=""
-                # PID file location
-                pidfile="${!game_dir}/server.pid"
-                # Game binary full path
-                game_bin="${!game_dir}/${!GAME_BIN_NAME}"
-                
-                ##################
-                ### END CONFIG ###
-                ##################
-                
-                RETVAL=0
-                
-                # Source function library.
-                . /etc/rc.d/init.d/functions
-                
-                start() {
-                        echo -n $"Starting ${!GAME_NAME}: "
-                
-                        su -l ${!GAME_USER} -c "${!game_bin} ${!game_options} 1>/dev/null 2>&1 & echo \$! >${!pidfile}"
-                        sleep 1
-                        service ${!GAME_NAME} status >/dev/null 2>&1
-                        if [ "$?" = "0" ]
-                        then
-                                success
-                                RETVAL=0
-                        else
-                                failure
-                                RETVAL=1
-                        fi
-                        echo
-                }
-                stop() {
-                        echo -n $"Stopping ${!GAME_NAME}: "
-                        killproc -p ${!pidfile} -d 10 ${!game_bin}
-                        RETVAL=$?
-                        echo
-                }
-                
-                # See how we were called.
-                case "$1" in
-                  start)
-                        start
-                        ;;
-                  stop)
-                        stop
-                        ;;
-                  status)
-                        if ! test -f ${!pidfile}; then
-                            echo ${!GAME_NAME} is stopped
-                            RETVAL=3
-                        else
-                            status -p ${!pidfile} ${!game_bin}
-                            RETVAL=$?
-                        fi
-                        ;;
-                  *)
-                        echo $"Usage: ${!GAME_NAME} {start|stop|status}"
-                        exit 1
-                esac
-                
-                exit $RETVAL
-              mode: "000755"
-              owner: "root"
-              group: "root"
-            /opt/games/.redorchestra/System/RedOrchestra.ini: 
+                cd /d c:\games\steam
+                set STEAMUSER=${SteamUsername}
+                set STEAMPASS=${SteamPassword}
+                steamcmd.exe +login %STEAMUSER% %STEAMPASS% +force_install_dir c:\games\redorchestra +app_update 223240 validate +quit
+                exit /b 0
+            c:\games\config\RedOrchestra.ini: 
               content: !Sub | 
                 [URL]
                 Protocol=RedOrchestra
@@ -1007,75 +920,33 @@ Resources:
                 
                 [ROFirstRun]
                 ROFirstRun=1087
-
-              mode: "000644"
-              owner: "steam"
-              group: "steam"
           commands:
             01_install: 
-              command: "/opt/games/steam/steamcmd.sh +login $STEAMUSER $STEAMPASS +force_install_dir /opt/games/redorchestra +app_update 223250 validate +quit"
-              cwd: "/opt/games/steam"
-              env: 
-                STEAMUSER: !Ref SteamUsername
-                STEAMPASS: !Ref SteamPassword
+              command: powershell.exe -Command "c:\\games\\config\\update-ro.bat"
+              ignoreErrors: true
             02a_validate: 
-              command: "/opt/games/steam/steamcmd.sh +login $STEAMUSER $STEAMPASS +force_install_dir /opt/games/redorchestra +app_update 223250 validate +quit"
-              cwd: "/opt/games/steam"
-              env: 
-                STEAMUSER: !Ref SteamUsername
-                STEAMPASS: !Ref SteamPassword
-            02b_validate: 
-              command: "/opt/games/steam/steamcmd.sh +login $STEAMUSER $STEAMPASS +force_install_dir /opt/games/redorchestra +app_update 223250 validate +quit"
-              cwd: "/opt/games/steam"
-              env: 
-                STEAMUSER: !Ref SteamUsername
-                STEAMPASS: !Ref SteamPassword
-            02c_validate: 
-              command: "/opt/games/steam/steamcmd.sh +login $STEAMUSER $STEAMPASS +force_install_dir /opt/games/redorchestra +app_update 223250 validate +quit"
-              cwd: "/opt/games/steam"
-              env: 
-                STEAMUSER: !Ref SteamUsername
-                STEAMPASS: !Ref SteamPassword
-            02d_validate: 
-              command: "/opt/games/steam/steamcmd.sh +login $STEAMUSER $STEAMPASS +force_install_dir /opt/games/redorchestra +app_update 223250 validate +quit"
-              cwd: "/opt/games/steam"
-              env: 
-                STEAMUSER: !Ref SteamUsername
-                STEAMPASS: !Ref SteamPassword
-            03_correct_owner: 
-              command: "chown steam -R /opt/games"
-              cwd: "~"
-            04_correct_group: 
-              command: "chgrp steam -R /opt/games"
-              cwd: "~"
-            05_correct_permissions: 
-              command: "chmod 0755 -R /opt/games"
-              cwd: "~"
-            06_setup_service: 
-              command: "chkconfig redorchestra on"
-              cwd: "~"
-            07_setup_shell: 
-              command: "usermod --shell /bin/bash steam"
-              cwd: "~"
-            08_write_correct_appid:
-              command: "echo 1200 > /opt/games/redorchestra/system/steam_appid.txt"
-              cwd: "~"
-            09_reboot: 
-              command: "reboot"
-              cwd: "~"
+              command: powershell.exe -Command "c:\\games\\config\\update-ro.bat"
+              ignoreErrors: true
+            03_write_correct_appid:
+              command: powershell.exe -Command "echo 1200 > c:\\games\\redorchestra\\system\\steam_appid.txt"
+              ignoreErrors: true
+            04_copy_config:
+              command: powershell.exe -Command "copy c:\\games\\config\\RedOrchestra.ini c:\\games\\redorchestra\\system\\RedOrchestra.ini"
+              ignoreErrors: true
 
-      
-        
-
-  SSHSecurityGroup:
+  RDPSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Enable SSH access via port 22
+      GroupDescription: Enable RDP access
       SecurityGroupIngress:
       - CidrIp: 0.0.0.0/0
-        FromPort: 22
+        FromPort: 3389
         IpProtocol: tcp
-        ToPort: 22
+        ToPort: 3389
+      - CidrIp: 0.0.0.0/0
+        FromPort: 3389
+        IpProtocol: udp
+        ToPort: 3389
 
   ROSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -1094,6 +965,10 @@ Resources:
         FromPort: 7767
         IpProtocol: udp
         ToPort: 7767
+      - CidrIp: 0.0.0.0/0
+        FromPort: 7768
+        IpProtocol: udp
+        ToPort: 7768
       - CidrIp: 0.0.0.0/0
         FromPort: 10757
         IpProtocol: udp
@@ -1123,6 +998,6 @@ Outputs:
       Name: !Sub "${AWS::StackName}-PublicIp"
   WebAdminURL:
     Description: Web Admin URL
-    Value: http://!GetAtt ROServerEC2.PublicIp:8075
+    Value: !Sub "http://${!GetAtt ROServerEC2.PublicIp}:8075"
     Export:
       Name: !Sub "${AWS::StackName}-WebAdminURL"
