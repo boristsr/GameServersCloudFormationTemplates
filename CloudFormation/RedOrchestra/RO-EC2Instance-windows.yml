@@ -927,11 +927,18 @@ Resources:
             02a_validate: 
               command: powershell.exe -Command "c:\\games\\config\\update-ro.bat"
               ignoreErrors: true
+            02b_validate: 
+              command: powershell.exe -Command "c:\\games\\config\\update-ro.bat"
+              ignoreErrors: true
             03_write_correct_appid:
               command: powershell.exe -Command "echo 1200 > c:\\games\\redorchestra\\system\\steam_appid.txt"
               ignoreErrors: true
             04_copy_config:
               command: powershell.exe -Command "copy c:\\games\\config\\RedOrchestra.ini c:\\games\\redorchestra\\system\\RedOrchestra.ini"
+              ignoreErrors: true
+            05_disable_firewall:
+              # There is a firewall provided by AWS, and there is nothing else within this stack, so disabling the windows firewall entirely.
+              command: powershell.exe -Command "netsh advfirewall set allprofiles state off"
               ignoreErrors: true
 
   RDPSecurityGroup:
