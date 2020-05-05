@@ -104,7 +104,7 @@ Resources:
                 CREATED ON INSTANCE ${InstanceType};
             c:\games\config\start-ro.bat: 
               content: !Sub | 
-                echo 1200 > c:\games\redorchestra\System\steam_appid.txt
+                echo 1280 > c:\games\redorchestra\System\steam_appid.txt
                 cd /d c:\games\redorchestra\system
                 ucc.exe server RO-Barashka.rom?game=ROGame.ROTeamGame?VACSecured=True? -nohomedir
             c:\games\config\update-ro.bat:
@@ -113,7 +113,7 @@ Resources:
                 cd /d c:\games\steam
                 set STEAMUSER=${SteamUsername}
                 set STEAMPASS=${SteamPassword}
-                steamcmd.exe +login %STEAMUSER% %STEAMPASS% +force_install_dir c:\games\redorchestra +app_update 223240 validate +quit
+                steamcmd.exe +login %STEAMUSER% %STEAMPASS% +force_install_dir c:\games\redorchestra +app_update 223240 validate +app_update 1290 verify +quit
                 exit /b 0
             c:\games\config\RedOrchestra.ini: 
               content: !Sub | 
@@ -931,7 +931,7 @@ Resources:
               command: powershell.exe -Command "c:\\games\\config\\update-ro.bat"
               ignoreErrors: true
             03_write_correct_appid:
-              command: powershell.exe -Command "echo 1200 > c:\\games\\redorchestra\\system\\steam_appid.txt"
+              command: powershell.exe -Command "echo 1280 > c:\\games\\redorchestra\\system\\steam_appid.txt"
               ignoreErrors: true
             04_copy_config:
               command: powershell.exe -Command "copy c:\\games\\config\\RedOrchestra.ini c:\\games\\redorchestra\\system\\RedOrchestra.ini"
