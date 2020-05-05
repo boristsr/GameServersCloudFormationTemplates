@@ -106,7 +106,7 @@ Resources:
               content: !Sub | 
                 echo 1280 > c:\games\redorchestra\System\steam_appid.txt
                 cd /d c:\games\redorchestra\system
-                ucc.exe server RO-Barashka.rom?game=ROGame.ROTeamGame?VACSecured=True? -nohomedir
+                ucc.exe server DH-Brecourt?game=DH_Engine.DarkestHourGame?VACSecured=True? -mod=DarkestHour -ini=DarkestHour.ini -nohomedir
             c:\games\config\update-ro.bat:
               #TODO: Don't store credentials here
               content: !Sub | 

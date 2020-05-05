@@ -96,7 +96,7 @@ Resources:
                 /opt/games/steam/steamcmd.sh +login $STEAMUSER $STEAMPASS &
 
                 sleep 30
-                ./ucc-bin server RO-Barashka.rom?game=ROGame.ROTeamGame?VACSecured=True?
+                ./ucc-bin server DH-Brecourt?game=DH_Engine.DarkestHourGame?VACSecured=True? -mod=DarkestHour -ini=DarkestHour.ini
               mode: "000755"
               owner: "steam"
               group: "steam"
