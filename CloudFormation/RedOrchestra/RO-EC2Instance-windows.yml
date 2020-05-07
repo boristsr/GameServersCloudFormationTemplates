@@ -940,6 +940,9 @@ Resources:
               # There is a firewall provided by AWS, and there is nothing else within this stack, so disabling the windows firewall entirely.
               command: powershell.exe -Command "netsh advfirewall set allprofiles state off"
               ignoreErrors: true
+            06_install_steam:
+              command: powershell.exe -Command "c:\games\steamsetup.exe /S"
+              ignoreErrors: true
 
   RDPSecurityGroup:
     Type: AWS::EC2::SecurityGroup
