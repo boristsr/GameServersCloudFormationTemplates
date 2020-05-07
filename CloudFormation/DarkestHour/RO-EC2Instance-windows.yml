@@ -102,12 +102,12 @@ Resources:
             c:\games\config\cloudformation-info.txt: 
               content: !Sub | 
                 CREATED ON INSTANCE ${InstanceType};
-            c:\games\config\start-ro.bat: 
+            c:\games\config\start-dh.bat: 
               content: !Sub | 
                 echo 1280 > c:\games\redorchestra\System\steam_appid.txt
                 cd /d c:\games\redorchestra\system
-                ucc.exe server DH-Brecourt?game=DH_Engine.DarkestHourGame?VACSecured=True? -mod=DarkestHour -ini=DarkestHour.ini -nohomedir
-            c:\games\config\update-ro.bat:
+                ucc.exe server DH-Brecourt_Push.rom?game=DH_Engine.DarkestHourGame?Mutator=DH_AdminMenuMutator.DHAdminMenuMutator?VACSecured=True? -log=DHServerLog_%RANDOM%.log -mod=DarkestHour -ini=DarkestHour.ini
+            c:\games\config\update-dh.bat:
               #TODO: Don't store credentials here
               content: !Sub | 
                 cd /d c:\games\steam
@@ -115,14 +115,14 @@ Resources:
                 set STEAMPASS=${SteamPassword}
                 steamcmd.exe +login %STEAMUSER% %STEAMPASS% +force_install_dir c:\games\redorchestra +app_update 223240 validate +app_update 1290 verify +quit
                 exit /b 0
-            c:\games\config\RedOrchestra.ini: 
+            C:\games\config\DarkestHour.ini:
               content: !Sub | 
                 [URL]
                 Protocol=RedOrchestra
                 ProtocolDescription=RedOrchestra Protocol
                 Name=ROSoldier
                 Map=Index.rom
-                LocalMap=ROintro.rom
+                LocalMap=DHIntro.rom
                 NetBrowseMap=Entry.rom
                 Host=
                 Portal=
@@ -145,15 +145,15 @@ Resources:
                 AudioDevice=ALAudio.ALAudioSubsystem
                 NetworkDevice=IpDrv.TcpNetDriver
                 DemoRecordingDevice=Engine.DemoRecDriver
-                Console=ROInterface.ROConsole
-                GUIController=ROInterface.ROGUIController
+                Console=DH_Interface.DHConsole
+                GUIController=DH_Interface.DHGUIController
                 StreamPlayer=Engine.StreamInteraction
                 Language=int
                 Product=RedOrchestra
                 GameEngine=Engine.GameEngine
                 EditorEngine=Editor.EditorEngine
-                DefaultGame=ROGame.ROTeamGame
-                DefaultServerGame=ROGame.ROTeamGame
+                DefaultGame=DH_Engine.DarkestHourGame
+                DefaultServerGame=DH_Engine.DarkestHourGame
                 ViewportManager=WinDrv.WindowsClient
                 ;ViewportManager=SDLDrv.SDLClient
                 Render=Render.Render
@@ -163,15 +163,13 @@ Resources:
                 ServerReadsStdin=False
                 
                 [Core.System]
-                PurgeCacheDays=30
+                PurgeCacheDays=0
                 SavePath=..\Save
                 CachePath=../Cache
                 CacheExt=.uxx
-                CacheRecordPath=../System/*.ucl
-                MusicPath=../Music
+                MusicPath=../DarkestHour/Music
                 SpeechPath=../Speech
                 Paths=../System/*.u
-                Paths=../Maps/*.rom
                 Paths=../Textures/*.utx
                 Paths=../Sounds/*.uax
                 Paths=../Music/*.umx
@@ -203,6 +201,15 @@ Resources:
                 Paths=../StaticMeshes/Old2k4/*.usx
                 Paths=../Animations/Old2k4/*.ukx
                 Paths=../KarmaData/Old2k4/*.ka
+                CacheRecordPath=../DarkestHour/System/*.ucl
+                CacheRecordPath=../System/*.ucl
+                Paths=../DarkestHour/Animations/*.ukx
+                Paths=../DarkestHour/System/*.u
+                Paths=../DarkestHour/Textures/*.utx
+                Paths=../DarkestHour/StaticMeshes/*.usx
+                Paths=../DarkestHour/Maps/*.rom
+                Paths=../DarkestHour/Music/*.umx
+                Paths=../DarkestHour/Sounds/*.uax
                 
                 [Engine.GameEngine]
                 CacheSizeMegs=32
@@ -230,10 +237,10 @@ Resources:
                 ColorWorldTextures=False
                 ColorPlayerAndWeaponTextures=False
                 ColorInterfaceTextures=False
-                MainMenuClass=ROInterface.ROMainMenu
-                ConnectingMenuClass=ROInterface.ROServerLoading
-                DisconnectMenuClass=ROInterface.RONetworkStatusMessage
-                LoadingClass=ROInterface.ROServerLoading
+                MainMenuClass=DH_Interface.DHMainMenu
+                ConnectingMenuClass=DH_Interface.DHServerLoading
+                DisconnectMenuClass=DH_Interface.DHNetworkStatusMessage
+                LoadingClass=DH_Interface.DHServerLoading
                 ServerPackages=ROEffects
                 ServerPackages=ROEngine
                 ServerPackages=ROGame
@@ -243,12 +250,28 @@ Resources:
                 ServerPackages=RORoles
                 ServerPackages=AHZ_ROVehicles
                 ServerPackages=ROCustom
+                ServerPackages=DH_Artillery
+                ServerPackages=DH_BritishPlayers
+                ServerPackages=DH_Construction
+                ServerPackages=DH_Effects
+                ServerPackages=DH_Engine
+                ServerPackages=DH_Equipment
+                ServerPackages=DH_Game
+                ServerPackages=DH_GerPlayers
+                ServerPackages=DH_Guns
+                ServerPackages=DH_Interface
+                ServerPackages=DH_USPlayers
+                ServerPackages=DH_SovietPlayers
+                ServerPackages=DH_Vehicles
+                ServerPackages=DH_Weapons
+                ServerPackages=DH_Mortars
+                ServerPackages=UCore
                 
                 [WinDrv.WindowsClient]
-                WindowedViewportX=640
-                WindowedViewportY=480
-                FullscreenViewportX=800
-                FullscreenViewportY=600
+                WindowedViewportX=1024
+                WindowedViewportY=768
+                FullscreenViewportX=1024
+                FullscreenViewportY=768
                 MenuViewportX=640
                 MenuViewportY=480
                 Brightness=0.800000
@@ -256,7 +279,7 @@ Resources:
                 Gamma=0.800000
                 UseJoystick=False
                 CaptureMouse=True
-                StartupFullscreen=True
+                StartupFullscreen=false
                 ScreenFlashes=True
                 NoLighting=False
                 MinDesiredFrameRate=35.000000
@@ -281,6 +304,7 @@ Resources:
                 UseSpeechRecognition=True
                 WeatherEffects=True
                 DrawDistanceLOD=1.0
+                Bloom=False
                 
                 [SDLDrv.SDLClient]
                 WindowedViewportX=640
@@ -357,31 +381,34 @@ Resources:
                 
                 [IpDrv.TcpNetDriver]
                 AllowDownloads=True
-                ConnectionTimeout=30.0
-                InitialConnectTimeout=200.0
+                ConnectionTimeout=15.000000
+                InitialConnectTimeout=200.000000
                 AckTimeout=1.0
-                KeepAliveTime=0.2
-                MaxClientRate=15000
-                MaxInternetClientRate=10000
+                KeepAliveTime=0.010000
+                MaxClientRate=30000
+                MaxInternetClientRate=30000
                 SimLatency=0
-                RelevantTimeout=5.0
-                SpawnPrioritySeconds=1.0
-                ServerTravelPause=4.0
-                NetServerMaxTickRate=20
-                LanServerMaxTickRate=35
-                DownloadManagers=IpDrv.HTTPDownload
-                DownloadManagers=Engine.ChannelDownload
+                RelevantTimeout=5.000000
+                SpawnPrioritySeconds=1.000000
+                ServerTravelPause=4.000000
+                NetServerMaxTickRate=32
+                LanServerMaxTickRate=32
                 AllowPlayerPortUnreach=False
                 LogPortUnreach=False
                 MaxConnPerIPPerMinute=5
                 LogMaxConnPerIPPerMin=False
+                LimitConnPerIPRangePerMinute=False
+                DisableKSecFix=False
+                MaxDownloadSize=0
+                DownloadManagers=IpDrv.HTTPDownload
+                DownloadManagers=Engine.ChannelDownload
                 
                 [IpServer.UdpServerQuery]
                 GameName=rom
                 
                 [IpDrv.MasterServerUplink]
                 DoUplink=False
-                UplinkToGamespy=True
+                UplinkToGamespy=False
                 SendStats=False
                 ServerBehindNAT=True
                 DoLANBroadcast=True
@@ -417,7 +444,7 @@ Resources:
                 ServerRegion=0
                 AdminName=
                 AdminEmail=
-                MessageOfTheDay=
+                MessageOfTheDay= Darkest Hour: A modification for Red Orchestra - Ostfront
                 
                 [D3DDrv.D3DRenderDevice]
                 DetailTextures=True
@@ -597,12 +624,30 @@ Resources:
                 CutdownPackages=XPickups
                 CutdownPackages=XWebAdmin
                 CutdownPackages=XVoting
+                EditPackages=UCore
+                EditPackages=DH_Effects
+                EditPackages=DH_Engine
+                EditPackages=DH_Game
+                EditPackages=DH_Interface
+                EditPackages=DH_Weapons
+                EditPackages=DH_Vehicles
+                EditPackages=DH_Guns
+                EditPackages=DH_Equipment
+                EditPackages=DH_Mortars
+                EditPackages=DH_LevelActors
+                EditPackages=DH_GerPlayers
+                EditPackages=DH_BritishPlayers
+                EditPackages=DH_USPlayers
+                EditPackages=DH_SovietPlayers
+                EditPackages=DH_AdminMenuMutator
+                EditPackages=DH_Construction
+                EditPackages=DH_Artillery
                 
                 [UWeb.WebServer]
-                Applications[0]=xWebAdmin.UTServerAdmin
-                ApplicationPaths[0]=/ServerAdmin
-                Applications[1]=xWebAdmin.UTImageServer
-                ApplicationPaths[1]=/images
+                Applications[0]=DH_Engine.DHWebServerAdmin
+                ApplicationPaths[0]=/DHServerAdmin
+                Applications[1]=DH_Engine.DHImageServer
+                ApplicationPaths[1]=/DHImages
                 bEnabled=True
                 ListenPort=8075
                 
@@ -622,6 +667,7 @@ Resources:
                 AdminPassword=${AdminPassword}
                 GamePassword=${GamePassword}
                 bBanByID=True
+                BannedIDs=76561198136036249 GlobalBan
                 
                 [Engine.GameInfo]
                 GoreLevel=2
@@ -641,7 +687,7 @@ Resources:
                 GoalScore=0
                 GameStatsClass=IpDrv.MasterServerGameStats
                 SecurityClass=UnrealGame.UnrealSecurity
-                AccessControlClass=Engine.AccessControl
+                AccessControlClass=DH_Engine.DHAccessControl
                 VotingHandlerType=xVoting.xVotingHandler
                 MaxIdleTime=+0.0
                 bVACSecured=False
@@ -657,7 +703,7 @@ Resources:
                 DecalStayScale=1.0
                 bNeverPrecache=false
                 TimeMarginSlack=1.35
-                MaxClientFrameRate=+90.0
+                MaxClientFrameRate=144.000000
                 
                 [XInterface.ExtendedConsole]
                 ConsoleHotKey=192
@@ -755,6 +801,7 @@ Resources:
                 Games=(GameType="XGame.xDoubleDom",ActiveMaplist="Default DOM2")
                 Games=(GameType="XGame.xTeamGame",ActiveMaplist="Default TDM")
                 Games=(GameType="XGame.xVehicleCTFGame",ActiveMaplist=)
+                Games=(GameType="DH_Engine.DarkestHourGame",ActiveMaplist="Default DarkestHour")
                 Games=(GameType="ROEngine.ROTeamGame",ActiveMaplist="Default RO")
                 
                 [XInterface.MapListDeathMatch]
@@ -837,32 +884,6 @@ Resources:
                 
                 [ROInterface.ROMapList]
                 MapNum=0
-                Maps=RO-FallenHeroes
-                Maps=RO-KrivoiRog
-                Maps=RO-Danzig
-                Maps=RO-Arad
-                Maps=RO-Barashka
-                Maps=RO-Basovka
-                Maps=RO-Bondarevo
-                Maps=RO-HedgeHog
-                Maps=RO-Kaukasus
-                Maps=RO-KrasnyiOktyabr
-                Maps=RO-Ogledow
-                Maps=RO-Odessa
-                Maps=RO-StalingradKessel
-                Maps=RO-KonigsPlatz
-                Maps=RO-Rakowice
-                Maps=RO-BaksanValley
-                Maps=RO-Berezina
-                Maps=RO-BlackDayJuly
-                Maps=RO-Kryukovo
-                Maps=RO-KurlandKessel
-                Maps=RO-Leningrad
-                Maps=RO-Mannikkala
-                Maps=RO-SmolenskStalemate
-                Maps=RO-Tcherkassy
-                Maps=RO-TulaOutskirts
-                Maps=RO-Zhitomir1941
                 
                 [ROEngine.ROTeamGame]
                 WinLimit=2
@@ -920,25 +941,185 @@ Resources:
                 
                 [ROFirstRun]
                 ROFirstRun=1087
+                
+                [UnrealGame.UnrealMPGameInfo]
+                BotMode=4
+                MinPlayers=0
+                
+                [Engine.VoiceChatReplicationInfo]
+                VoIPInternetCodecs=CODEC_96WB
+                
+                [DH_Engine.DHVotingHandler]
+                bMapVote=True
+                bKickVote=True
+                VoteTimeLimit=30
+                bAnonymousKicking=False
+                
+                [DH_Engine.DarkestHourGame]
+                bSessionKickOnSecondFFViolation=True
+                WinLimit=1
+                RoundLimit=1
+                PreStartTime=0
+                FFDamageLimit=0
+                FFKillLimit=4
+                FFArtyScale=0.500000
+                FFExplosivesScale=0.500000
+                MaxTeamDifference=2
+                MaxPlayersOverride=0
+                bForgiveFFKillsEnabled=True
+                bShowServerIPOnScoreboard=True
+                bShowTimeOnScoreboard=True
+                NetWait=15
+                bIgnore32PlayerLimit=True
+                
+                [DefaultDarkestHour MaplistRecord]
+                DefaultTitle=Default DarkestHour
+                DefaultGameType=DH_Engine.DarkestHourGame
+                DefaultActive=53
+                DefaultMaps=DH-Barashka_Clash?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Bois_Jacques_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Brecourt_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Bridgehead_Advance?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Caen_Advance?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Cambes-En-Plaine_Clash?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Carentan_Causeway_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Carentan_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Carpiquet_Airfield_Advance?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Cheneux_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Dead_Man's_Corner_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Dog_Green_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Donner_Stalemate?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Falaise_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Flakturm_Tiergarten_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Foucarville_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Foy_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Ginkel_Heath_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Gorlitz_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Hattert_Clash?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Hedgerow_Hell_Clash?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Hill_108_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Hill_400_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Hurtgenwald_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Juno_Beach_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Konigsplatz_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Kriegstadt_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-La_Cambe_Advance?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-La_Chapelle_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-La_Gleize_Advance?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-La_Gleize_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Lutremange_Clash?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Lutremange_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Noville_Advance?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Noville_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Nuenen_Clash?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Oosterbeek_Advance?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Pariserplatz_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Poteau_Ambush_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Putot-en-Bessin_Advance?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Radar_Advance?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Raids_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Rakowice_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Reichswald_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Simonskall_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-St-Clement_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Stavelot_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Stoumont_Advance?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Stoumont_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Targnon_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Varaville_Advance?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Vierville_Push?RoundLimit=1?WinLimit=1
+                DefaultMaps=DH-Vossenack_Push?RoundLimit=1?WinLimit=1
+                
+                [DH_Interface.DHMapList]
+                MapNum=53
+                Maps=DH-Barashka_Clash
+                Maps=DH-Bois_Jacques_Push
+                Maps=DH-Brecourt_Push
+                Maps=DH-Bridgehead_Advance
+                Maps=DH-Caen_Advance
+                Maps=DH-Cambes-En-Plaine_Clash
+                Maps=DH-Carentan_Causeway_Push
+                Maps=DH-Carentan_Push
+                Maps=DH-Carpiquet_Airfield_Advance
+                Maps=DH-Cheneux_Push
+                Maps=DH-Dead_Man's_Corner_Push
+                Maps=DH-Dog_Green_Push
+                Maps=DH-Donner_Stalemate
+                Maps=DH-Falaise_Push
+                Maps=DH-Flakturm_Tiergarten_Push
+                Maps=DH-Foucarville_Push
+                Maps=DH-Foy_Push
+                Maps=DH-Ginkel_Heath_Push
+                Maps=DH-Gorlitz_Push
+                Maps=DH-Hattert_Clash
+                Maps=DH-Hedgerow_Hell_Clash
+                Maps=DH-Hill_108_Push
+                Maps=DH-Hill_400_Push
+                Maps=DH-Hurtgenwald_Push
+                Maps=DH-Juno_Beach_Push
+                Maps=DH-Konigsplatz_Push
+                Maps=DH-Kriegstadt_Push
+                Maps=DH-La_Cambe_Advance
+                Maps=DH-La_Chapelle_Push
+                Maps=DH-La_Gleize_Advance
+                Maps=DH-La_Gleize_Push
+                Maps=DH-Lutremange_Clash
+                Maps=DH-Lutremange_Push
+                Maps=DH-Noville_Advance
+                Maps=DH-Noville_Push
+                Maps=DH-Nuenen_Clash
+                Maps=DH-Oosterbeek_Advance
+                Maps=DH-Pariserplatz_Push
+                Maps=DH-Poteau_Ambush_Push
+                Maps=DH-Putot-en-Bessin_Advance
+                Maps=DH-Radar_Advance
+                Maps=DH-Raids_Push
+                Maps=DH-Rakowice_Push
+                Maps=DH-Reichswald_Push
+                Maps=DH-Simonskall_Push
+                Maps=DH-St-Clement_Push
+                Maps=DH-Stavelot_Push
+                Maps=DH-Stoumont_Advance
+                Maps=DH-Stoumont_Push
+                Maps=DH-Targnon_Push
+                Maps=DH-Varaville_Advance
+                Maps=DH-Vierville_Push
+                Maps=DH-Vossenack_Push
+                
+                [ROEngine.ROWeapon]
+                ScopeDetail=RO_TextureScope
+                
+                [DH_AdminMenuMutator.DHAdminMenuMutator]
+                bShowRealismMenu=true
+                bParaDropPlayerAllowed=true
+                bBypassAdminLogin=false
+                
+                [DefaultRO MaplistRecord]
+                DefaultTitle=Default RO
+                DefaultGameType=ROEngine.ROTeamGame
+                DefaultActive=0              
           commands:
             01_install: 
-              command: powershell.exe -Command "c:\\games\\config\\update-ro.bat"
+              command: powershell.exe -Command "c:\\games\\config\\update-dh.bat"
               ignoreErrors: true
             02a_validate: 
-              command: powershell.exe -Command "c:\\games\\config\\update-ro.bat"
+              command: powershell.exe -Command "c:\\games\\config\\update-dh.bat"
               ignoreErrors: true
             02b_validate: 
-              command: powershell.exe -Command "c:\\games\\config\\update-ro.bat"
+              command: powershell.exe -Command "c:\\games\\config\\update-dh.bat"
               ignoreErrors: true
             03_write_correct_appid:
               command: powershell.exe -Command "echo 1280 > c:\\games\\redorchestra\\system\\steam_appid.txt"
               ignoreErrors: true
             04_copy_config:
-              command: powershell.exe -Command "copy c:\\games\\config\\RedOrchestra.ini c:\\games\\redorchestra\\system\\RedOrchestra.ini"
+              command: powershell.exe -Command "copy c:\\games\\config\\DarkestHour.ini C:\\games\\redorchestra\\DarkestHour\\System\\DarkestHour.ini"
               ignoreErrors: true
             05_disable_firewall:
               # There is a firewall provided by AWS, and there is nothing else within this stack, so disabling the windows firewall entirely.
               command: powershell.exe -Command "netsh advfirewall set allprofiles state off"
+              ignoreErrors: true
+            06_install_steam:
+              command: powershell.exe -Command "c:\games\steamsetup.exe /S"
               ignoreErrors: true
 
   RDPSecurityGroup:
