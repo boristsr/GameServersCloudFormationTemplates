@@ -1117,11 +1117,10 @@ Resources:
             03_write_correct_appid:
               command: powershell.exe -Command "echo 1280 > c:\\games\\redorchestra\\system\\steam_appid.txt"
               ignoreErrors: true
-            04a_copy_dh_config:
+            04a_copy_config_dh:
               command: powershell.exe -Command "copy c:\\games\\config\\DarkestHour.ini C:\\games\\redorchestra\\DarkestHour\\System\\DarkestHour.ini"
               ignoreErrors: true
-              
-            04b_copy_webadmin_config:
+            04b_copy_config_webadmin:
               command: powershell.exe -Command "copy c:\\games\\config\\XAdmin.ini C:\\games\\redorchestra\\System\\XAdmin.ini"
               ignoreErrors: true
             05_disable_firewall:
