@@ -115,7 +115,7 @@ Resources:
                 set STEAMPASS=${SteamPassword}
                 steamcmd.exe +login %STEAMUSER% %STEAMPASS% +force_install_dir c:\games\redorchestra +app_update 223240 validate +app_update 1290 verify +quit
                 exit /b 0
-            C:\games\redorchestra\System\XAdmin.ini:
+            C:\games\config\XAdmin.ini:
               content: !Sub | 
                 [XAdmin.xAdminConfigIni]
                 AdminUsers=(AdminName="admin",Password="${AdminPassword}",Privileges=,Groups=("Admin"),ManagedGroups=)
@@ -1117,8 +1117,12 @@ Resources:
             03_write_correct_appid:
               command: powershell.exe -Command "echo 1280 > c:\\games\\redorchestra\\system\\steam_appid.txt"
               ignoreErrors: true
-            04_copy_config:
+            04a_copy_dh_config:
               command: powershell.exe -Command "copy c:\\games\\config\\DarkestHour.ini C:\\games\\redorchestra\\DarkestHour\\System\\DarkestHour.ini"
+              ignoreErrors: true
+              
+            04b_copy_webadmin_config:
+              command: powershell.exe -Command "copy c:\\games\\config\\XAdmin.ini C:\\games\\redorchestra\\System\\XAdmin.ini"
               ignoreErrors: true
             05_disable_firewall:
               # There is a firewall provided by AWS, and there is nothing else within this stack, so disabling the windows firewall entirely.
