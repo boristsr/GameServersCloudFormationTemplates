@@ -115,6 +115,12 @@ Resources:
                 set STEAMPASS=${SteamPassword}
                 steamcmd.exe +login %STEAMUSER% %STEAMPASS% +force_install_dir c:\games\redorchestra +app_update 223240 validate +app_update 1290 verify +quit
                 exit /b 0
+            C:\games\redorchestra\System\XAdmin.ini:
+              content: !Sub | 
+                [XAdmin.xAdminConfigIni]
+                AdminUsers=(AdminName="admin",Password="${AdminPassword}",Privileges=,Groups=("Admin"),ManagedGroups=)
+                AdminGroups=(GroupName="Admin",Privileges=,GameSecLevel=255)
+                AdminGroups=(GroupName="MatchSetup",Privileges="Xm",GameSecLevel=240)
             C:\games\config\DarkestHour.ini:
               content: !Sub | 
                 [URL]

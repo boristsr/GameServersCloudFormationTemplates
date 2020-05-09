@@ -11,9 +11,8 @@
 - SteamGuard will break this script. Setup a new steam account with a complex password and disable steamguard 2FA.
 - I never scripted an auto-start, or service method for the game as I ran out of time, and didn't script the steam login either.
 
-1. Install full steam client (downloaded automatically to c:\games)
-2. Login to full steam client and leave running
-3. Run game by running c:\games\start-ro.bat.
+1. Login to full steam client and leave running
+2. Run game by running c:\games\start-ro.bat.
 
 ## Running the server
 
