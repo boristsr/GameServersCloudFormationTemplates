@@ -1,10 +1,5 @@
 # Red Orchestra CloudFormation templates
 
-## Linux Notes
-
-- This fully starts, however steam auth doesn't work. I believe this is something to do with the app and SteamCMD. Many others have complained on forums of similar issues. If anyone has a solution, let me know.
-- SteamGuard will break this script. Setup a new steam account with a complex password and disable steamguard 2FA.
-
 ## Windows Notes
 
 - Currently this works correctly, but there are manual steps that haven't been scripted yet.
