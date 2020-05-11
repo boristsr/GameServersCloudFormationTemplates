@@ -1,4 +1,4 @@
-# Red Orchestra CloudFormation templates
+# Red Orchestra - Darkest Hour CloudFormation templates
 
 ## Windows Notes
 
