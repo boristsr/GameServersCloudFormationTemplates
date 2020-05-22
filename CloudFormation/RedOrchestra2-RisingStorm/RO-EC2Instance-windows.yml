@@ -1,0 +1,242 @@
+Parameters: 
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  InstanceType: 
+    Type: String
+    Default: t2.small
+    AllowedValues:
+      - t3.small
+      - t2.small
+      - c5.large
+      - c5.xlarge
+      - c5.2xlarge
+    Description: Enter t2.small, t3.small, c5.large, c5.xlarge, c5.2xlarge. Default is t2.small.
+  ImageResourceId: 
+    Type: AWS::EC2::Image::Id
+    Default: ami-0df33e36ca53be643 #Windows Server 2019 base
+    AllowedValues: 
+      - ami-0df33e36ca53be643 #Windows Server 2019 base
+    Description: Choose the system image to run on.
+  SteamUsername: 
+    Type: String
+    Default: user
+    Description: Enter a steam username
+  SteamPassword: 
+    Type: String
+    Default: user
+    Description: Enter a steam password
+  ServerName: 
+    Type: String
+    Default: RODefaultServer
+    Description: Enter a name for the server
+  ServerShortName: 
+    Type: String
+    Default: RODefaultServer
+    Description: Enter a short name for the server
+  GamePassword: 
+    Type: String
+    Default: ""
+    Description: Enter a password to join the game. Leave blank for no password
+  AdminPassword: 
+    Type: String
+    Description: Enter an administrator password for ingame and webadmin.
+  MaxPlayers: 
+    Type: String
+    Default: 16
+    Description: Enter the maximum number of players. Up to 64. Make sure you are running on a larger instance if above 40.
+
+Resources:
+  ROServerEC2:
+    Type: AWS::EC2::Instance
+    Properties:
+        ImageId: !Ref ImageResourceId
+        KeyName: !Ref KeyName
+        InstanceType: !Ref InstanceType
+        SecurityGroups:
+        - !Ref RDPSecurityGroup
+        - !Ref ROSecurityGroup
+        UserData: !Base64
+          Fn::Join:
+            - ''
+            - - "<script>\n"
+              - 'cfn-init.exe -v -s '
+              - !Ref 'AWS::StackId'
+              - ' -r ROServerEC2 '
+              - ' --region '
+              - !Ref 'AWS::Region'
+              - "\n"
+              - </script>
+    Metadata:
+      AWS::CloudFormation::Init:
+        config:
+          sources:
+            c:\games\steamcmd: "https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip"
+          files:
+            c:\games\requirements\steamsetup.exe:
+              source:
+                https://steamcdn-a.akamaihd.net/client/installer/SteamSetup.exe
+            c:\games\requirements\dxwebsetup.exe:
+              source:
+                https://download.microsoft.com/download/1/7/1/1718CCC4-6315-4D8E-9543-8E28A4E18C4C/dxwebsetup.exe
+            C:\cfn\cfn-hup.conf:
+              content: !Join
+                - ''
+                - - "[main]\n"
+                  - stack=
+                  - !Ref 'AWS::StackId'
+                  - "\n"
+                  - region=
+                  - !Ref 'AWS::Region'
+                  - "\n"
+            C:\cfn\hooks.d\cfn-auto-reloader.conf:
+              content: !Join
+                - ''
+                - - "[cfn-auto-reloader-hook]\n"
+                  - "triggers=post.update\n"
+                  - "path=Resources.ROServerEC2.Metadata.AWS::CloudFormation::Init\n"
+                  - 'action=cfn-init.exe -v -s '
+                  - !Ref 'AWS::StackId'
+                  - ' -r ROServerEC2'
+                  - ' --region '
+                  - !Ref 'AWS::Region'
+                  - "\n"
+            c:\games\config\cloudformation-info.txt: 
+              content: !Sub | 
+                CREATED ON INSTANCE ${InstanceType};
+            c:\games\config\start-ro2.bat: 
+              content: !Sub | 
+                cd /d c:\games\redorchestra2
+                start .\Binaries\win32\rogame te-Apartments?minplayers=0? -brewedloading
+            c:\games\config\update-ro2.bat:
+              #TODO: Don't store credentials here
+              content: !Sub | 
+                cd /d c:\games\steamcmd
+                set STEAMUSER=${SteamUsername}
+                set STEAMPASS=${SteamPassword}
+                steamcmd.exe +login %STEAMUSER% %STEAMPASS% +force_install_dir c:\games\redorchestra2 +app_update 212542 validate +quit
+                exit /b 0
+            C:\games\config\ROWeb.ini:
+              content: !Sub | 
+                [IpDrv.WebConnection]
+                MaxValueLength=4096
+                MaxLineLength=4096
+                
+                [IpDrv.WebServer]
+                Applications[0]=WebAdmin.RO2ServerAdmin
+                Applications[1]=WebAdmin.RO2ImageServer
+                ApplicationPaths[0]=/ServerAdmin
+                ApplicationPaths[1]=/images
+                ListenPort=8080
+                MaxConnections=18
+                ExpirationSeconds=86400
+                bEnabled=true
+                
+                [IpDrv.WebResponse]
+                IncludePath=/ROGame/Web
+                
+                [IniVersion]
+                0=1589846506.000000
+            C:\games\config\ROGame.ini:
+              content: !Sub | 
+                [Engine.GameInfo]
+                DefaultGame=ROGame.ROGameInfo
+                DefaultServerGame=ROGame.ROGameInfo
+                bAdminCanPause=false
+                MaxPlayers=${MaxPlayers}
+                GameDifficulty=1.000000
+                bChangeLevels=True
+                MaxSpectators=2
+                MaxIdleTime=0.000000
+                MaxTimeMargin=1.000000
+                TimeMarginSlack=1.350000
+                MinTimeMargin=-1.000000
+                TotalNetBandwidth=32000
+                MaxDynamicBandwidth=7000
+                MinDynamicBandwidth=4000
+                GoreLevel=0
+                MaxSpeedhackDetections=3
+                SpeedhackPunishment=1
+                bKickLiveIdlers=False
+                ArbitrationHandshakeTimeout=0.000000
+
+                [Engine.AccessControl]
+                IPPolicies=ACCEPT;*
+                AdminPassword=${AdminPassword}
+                GamePassword=
+
+                [Engine.GameReplicationInfo]
+                ServerName=${ServerName}
+                ShortName=${ServerShortName}
+          commands:
+            01_install: 
+              command: powershell.exe -Command "c:\\games\\config\\update-ro2.bat"
+              ignoreErrors: true
+            02a_validate: 
+              command: powershell.exe -Command "c:\\games\\config\\update-ro2.bat"
+              ignoreErrors: true
+            02b_validate: 
+              command: powershell.exe -Command "c:\\games\\config\\update-ro2.bat"
+              ignoreErrors: true
+            03a_copy_config_roweb:
+              command: powershell.exe -Command "copy c:\\games\\config\\ROWeb.ini C:\\games\\redorchestra2\\ROGame\\Config\\ROWeb.ini"
+              ignoreErrors: true
+            03b_copy_config_rogame:
+              command: powershell.exe -Command "copy c:\\games\\config\\ROGame.ini C:\\games\\redorchestra2\\ROGame\\Config\\ROGame.ini"
+              ignoreErrors: true
+            04_disable_firewall:
+              # There is a firewall provided by AWS, and there is nothing else within this stack, so disabling the windows firewall entirely.
+              command: powershell.exe -Command "netsh advfirewall set allprofiles state off"
+              ignoreErrors: true
+            05_install_steam:
+              command: powershell.exe -Command "c:\\games\\requirements\\steamsetup.exe /S"
+              ignoreErrors: true
+            06_install_directx:
+              command: powershell.exe -Command "c:\\games\\requirements\\dxwebsetup.exe /Q"
+              ignoreErrors: true
+
+  RDPSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable RDP access
+      SecurityGroupIngress:
+      - CidrIp: 0.0.0.0/0
+        FromPort: 3389
+        IpProtocol: tcp
+        ToPort: 3389
+      - CidrIp: 0.0.0.0/0
+        FromPort: 3389
+        IpProtocol: udp
+        ToPort: 3389
+
+  ROSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable Steam and Red Orchestra
+      SecurityGroupIngress:
+      - CidrIp: 0.0.0.0/0
+        FromPort: 7777
+        IpProtocol: udp
+        ToPort: 7777
+      - CidrIp: 0.0.0.0/0
+        FromPort: 27015
+        IpProtocol: udp
+        ToPort: 27015
+      - CidrIp: 0.0.0.0/0
+        FromPort: 8080
+        IpProtocol: tcp
+        ToPort: 8080
+
+
+Outputs:
+  PublicIp:
+    Description: Server Public IP
+    Value: !GetAtt ROServerEC2.PublicIp
+    Export:
+      Name: !Sub "${AWS::StackName}-PublicIp"
+  WebAdminURL:
+    Description: Web Admin URL
+    Value: !Sub "http://${!GetAtt ROServerEC2.PublicIp}:8075"
+    Export:
+      Name: !Sub "${AWS::StackName}-WebAdminURL"
